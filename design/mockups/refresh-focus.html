@@ -1,0 +1,333 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Wiki — Спокойный фокус</title>
+  <link rel="stylesheet" href="../../app/src/tokens.css">
+  <style>
+    @font-face{font-family:Onest;src:url('../../app/node_modules/@fontsource/onest/files/onest-cyrillic-400-normal.woff2') format('woff2');font-weight:400;font-display:swap}
+    @font-face{font-family:Onest;src:url('../../app/node_modules/@fontsource/onest/files/onest-cyrillic-500-normal.woff2') format('woff2');font-weight:500;font-display:swap}
+    @font-face{font-family:Onest;src:url('../../app/node_modules/@fontsource/onest/files/onest-cyrillic-600-normal.woff2') format('woff2');font-weight:600;font-display:swap}
+    @font-face{font-family:Onest;src:url('../../app/node_modules/@fontsource/onest/files/onest-cyrillic-700-normal.woff2') format('woff2');font-weight:700;font-display:swap}
+    *{box-sizing:border-box}
+    html,body{margin:0;min-width:320px;min-height:100%;font-family:var(--wiki-font-family);color:var(--wiki-color-ink);background:var(--wiki-color-paper);font-synthesis:none}
+    button{font:inherit;color:inherit;cursor:pointer}
+    button:focus-visible,a:focus-visible{outline:2px solid var(--wiki-color-accent);outline-offset:3px}
+    button{transition:background var(--wiki-motion-fast) var(--wiki-motion-easing),color var(--wiki-motion-fast) var(--wiki-motion-easing),border-color var(--wiki-motion-fast) var(--wiki-motion-easing)}
+    .icon{width:18px;height:18px;display:block;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;flex:none}
+    .sprite{position:absolute;width:0;height:0;overflow:hidden}
+    .icon-button{width:36px;height:36px;display:inline-flex;align-items:center;justify-content:center;padding:0;border:0;border-radius:var(--wiki-radius-md);background:transparent;color:var(--wiki-color-muted)}
+    .icon-button:hover{background:var(--wiki-color-canvas);color:var(--wiki-color-ink)}
+    .icon-button[aria-pressed=true]{background:var(--wiki-color-accent-soft);color:var(--wiki-color-accent-dark)}
+    .app{height:100dvh;min-height:640px;display:grid;grid-template-columns:264px minmax(0,1fr);overflow:hidden;background:var(--wiki-color-paper)}
+    .sidebar{position:relative;z-index:4;min-width:0;display:flex;flex-direction:column;border-right:1px solid var(--wiki-color-line);background:var(--wiki-color-sidebar);transition:margin var(--wiki-motion-slow) var(--wiki-motion-easing),transform var(--wiki-motion-slow) var(--wiki-motion-easing)}
+    .brand{height:56px;display:flex;align-items:center;justify-content:space-between;padding:0 var(--wiki-space-4)}
+    .brand-name{display:flex;align-items:center;gap:var(--wiki-space-2);font-size:19px;font-weight:600;letter-spacing:-.04em}
+    .brand-mark{width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:var(--wiki-radius-md);background:var(--wiki-color-accent);color:var(--wiki-color-white)}
+    .brand-mark .icon{width:17px;height:17px}
+    .brand-note{color:var(--wiki-color-muted);font-size:11px}
+    .sidebar-actions{display:grid;gap:var(--wiki-space-2);padding:var(--wiki-space-2) var(--wiki-space-3) var(--wiki-space-5)}
+    .search-button,.new-page-button{height:36px;display:flex;align-items:center;gap:var(--wiki-space-2);padding:0 var(--wiki-space-3);border:1px solid var(--wiki-color-line);border-radius:var(--wiki-radius-md);background:var(--wiki-color-paper);font-size:13px;font-weight:500;text-align:left}
+    .search-button{color:var(--wiki-color-muted)}
+    .search-button span{flex:1}
+    .search-button kbd{padding:1px 5px;border:1px solid var(--wiki-color-line);border-radius:var(--wiki-radius-sm);background:var(--wiki-color-canvas);color:var(--wiki-color-muted);font:11px var(--wiki-font-family)}
+    .new-page-button{justify-content:center;border-color:var(--wiki-color-accent);background:var(--wiki-color-accent);color:var(--wiki-color-white)}
+    .new-page-button:hover{background:var(--wiki-color-accent-dark)}
+    .search-button:hover{border-color:var(--wiki-color-control);color:var(--wiki-color-ink)}
+    .tree-caption{display:flex;align-items:center;justify-content:space-between;padding:0 var(--wiki-space-5) var(--wiki-space-2);color:var(--wiki-color-muted);font-size:11px;font-weight:500;letter-spacing:.05em;text-transform:uppercase}
+    .tree-caption span:last-child{letter-spacing:0}
+    .tree{flex:1;min-height:0;overflow:auto;padding:0 var(--wiki-space-2) var(--wiki-space-5)}
+    .tree-row{position:relative;min-height:36px;display:flex;align-items:center;border-radius:var(--wiki-radius-md);color:var(--wiki-color-ink)}
+    .tree-row:hover{background:var(--wiki-color-canvas)}
+    .tree-row.active{background:var(--wiki-color-accent-soft);color:var(--wiki-color-accent-dark)}
+    .tree-row.active:before{content:'';position:absolute;left:0;top:9px;bottom:9px;width:2px;border-radius:2px;background:var(--wiki-color-accent)}
+    .disclosure{width:28px;height:36px;display:flex;align-items:center;justify-content:center;padding:0;border:0;background:transparent;color:var(--wiki-color-muted)}
+    .disclosure .icon{width:14px;height:14px;transition:transform var(--wiki-motion-fast)}
+    .disclosure[aria-expanded=false] .icon{transform:rotate(-90deg)}
+    .page-link{min-width:0;height:36px;flex:1;display:flex;align-items:center;gap:var(--wiki-space-2);padding:0;border:0;background:transparent;text-align:left}
+    .page-link .icon{width:16px;height:16px;color:var(--wiki-color-muted)}
+    .page-link span{overflow:hidden;font-size:13px;text-overflow:ellipsis;white-space:nowrap}
+    .page-emoji{font-size:15px;line-height:1}
+    .tree-add{width:28px;height:32px;display:flex;align-items:center;justify-content:center;margin-right:4px;padding:0;border:0;border-radius:var(--wiki-radius-sm);background:transparent;color:var(--wiki-color-muted);opacity:0}
+    .tree-add .icon{width:15px;height:15px}
+    .tree-row:hover .tree-add,.tree-add:focus-visible,.tree-row.active .tree-add{opacity:1}
+    .tree-add:hover{background:var(--wiki-color-selection);color:var(--wiki-color-accent-dark)}
+    .tree-children{margin-left:14px}
+    .tree-children.collapsed{display:none}
+    .project-tag{margin-left:auto;padding:1px 5px;border:1px solid var(--wiki-color-line);border-radius:var(--wiki-radius-sm);color:var(--wiki-color-muted);font-size:10px;font-weight:500}
+    .sidebar-bottom{padding:var(--wiki-space-2);border-top:1px solid var(--wiki-color-line)}
+    .workspace{width:100%;height:52px;display:flex;align-items:center;gap:10px;padding:6px 8px;border:0;border-radius:var(--wiki-radius-md);background:transparent;text-align:left}
+    .workspace:hover{background:var(--wiki-color-canvas)}
+    .workspace-avatar{width:32px;height:32px;display:flex;align-items:center;justify-content:center;flex:none;border-radius:var(--wiki-radius-md);background:var(--wiki-color-accent);color:var(--wiki-color-white);font-size:13px;font-weight:600}
+    .workspace-copy{min-width:0;flex:1;display:grid;gap:1px}
+    .workspace-copy strong{font-size:13px;font-weight:500}
+    .workspace-copy small{color:var(--wiki-color-muted);font-size:11px}
+    .workspace>.icon{width:15px;height:15px;color:var(--wiki-color-muted)}
+    .workspace-shell{min-width:0;min-height:0;display:grid;grid-template-columns:minmax(0,1fr) 240px;grid-template-rows:56px minmax(0,1fr);transition:grid-template-columns var(--wiki-motion-slow) var(--wiki-motion-easing)}
+    .topbar{grid-column:1/-1;min-width:0;display:flex;align-items:center;gap:var(--wiki-space-3);padding:0 var(--wiki-space-4) 0 var(--wiki-space-5);border-bottom:1px solid var(--wiki-color-line);background:var(--wiki-color-paper)}
+    .sidebar-toggle{margin-left:-8px}
+    .breadcrumb{min-width:0;flex:1;display:flex;align-items:center;gap:7px;color:var(--wiki-color-muted);font-size:12px;white-space:nowrap}
+    .breadcrumb span,.breadcrumb strong{overflow:hidden;text-overflow:ellipsis}
+    .breadcrumb strong{color:var(--wiki-color-ink);font-weight:500}
+    .breadcrumb .icon{width:13px;height:13px;color:var(--wiki-color-faint)}
+    .saved{display:flex;align-items:center;gap:6px;color:var(--wiki-color-muted);font-size:12px;white-space:nowrap}
+    .saved .icon{width:15px;height:15px;color:var(--wiki-color-accent)}
+    .presence{display:flex;padding-left:6px}
+    .avatar{width:28px;height:28px;display:flex;align-items:center;justify-content:center;margin-left:-6px;border:2px solid var(--wiki-color-paper);border-radius:50%;background:var(--wiki-color-info);color:var(--wiki-color-white);font-size:10px;font-weight:600}
+    .avatar.second{background:var(--wiki-color-warning)}
+    .share-button{height:32px;display:flex;align-items:center;gap:6px;padding:0 12px;border:1px solid var(--wiki-color-line);border-radius:var(--wiki-radius-md);background:var(--wiki-color-paper);font-size:13px;font-weight:500;white-space:nowrap}
+    .share-button:hover{background:var(--wiki-color-canvas);border-color:var(--wiki-color-control)}
+    .share-button .icon{width:15px;height:15px}
+    .top-actions{display:flex;align-items:center;gap:var(--wiki-space-2)}
+    .top-separator{width:1px;height:20px;margin:0 2px;background:var(--wiki-color-line)}
+    .editor-scroll{min-width:0;min-height:0;overflow:auto;scroll-behavior:smooth;background:var(--wiki-color-paper)}
+    .page{width:min(calc(100% - 96px),704px);margin:0 auto;padding:64px 0 120px}
+    .page-icon{width:48px;height:48px;display:flex;align-items:center;justify-content:center;margin-bottom:var(--wiki-space-4);font-size:40px;line-height:1}
+    h1{margin:0;font-size:40px;font-weight:600;line-height:1.25;letter-spacing:-.045em}
+    .page-meta{display:flex;align-items:center;gap:var(--wiki-space-2);margin-top:var(--wiki-space-3);color:var(--wiki-color-muted);font-size:12px}
+    .page-meta .icon{width:14px;height:14px}
+    .meta-dot{width:3px;height:3px;border-radius:50%;background:var(--wiki-color-faint)}
+    .prose{position:relative;margin-top:52px;font-size:16px;line-height:27px}
+    .prose p{margin:0 0 var(--wiki-space-5)}
+    .prose h2{margin:40px 0 var(--wiki-space-3);font-size:24px;font-weight:600;line-height:32px;letter-spacing:-.025em;scroll-margin-top:32px}
+    .prose h3{margin:32px 0 var(--wiki-space-2);font-size:19px;line-height:26px;scroll-margin-top:32px}
+    .prose ul{margin:0 0 var(--wiki-space-6);padding:0;list-style:none}
+    .prose li{position:relative;margin:6px 0;padding-left:24px}
+    .prose li:before{content:'';position:absolute;left:6px;top:12px;width:5px;height:5px;border-radius:50%;background:var(--wiki-color-muted)}
+    .prose strong{font-weight:600}
+    .selected-text{padding:2px 0;background:var(--wiki-color-selection);color:var(--wiki-color-ink);box-decoration-break:clone;-webkit-box-decoration-break:clone;cursor:text}
+    .selection-wrap{position:relative;display:inline}
+    .format-menu{position:absolute;z-index:5;left:50%;bottom:calc(100% + 12px);display:flex;align-items:center;gap:2px;padding:5px;border:1px solid var(--wiki-color-line);border-radius:var(--wiki-radius-lg);background:var(--wiki-color-paper);box-shadow:var(--wiki-shadow-menu);transform:translateX(-50%);white-space:nowrap}
+    .format-menu:after{content:'';position:absolute;left:50%;bottom:-5px;width:8px;height:8px;border-right:1px solid var(--wiki-color-line);border-bottom:1px solid var(--wiki-color-line);background:var(--wiki-color-paper);transform:translateX(-50%) rotate(45deg)}
+    .format-menu button{width:30px;height:30px;display:flex;align-items:center;justify-content:center;padding:0;border:0;border-radius:var(--wiki-radius-sm);background:transparent;color:var(--wiki-color-muted);font-size:14px}
+    .format-menu button:hover{background:var(--wiki-color-canvas);color:var(--wiki-color-ink)}
+    .format-menu button.active{background:var(--wiki-color-accent-soft);color:var(--wiki-color-accent-dark)}
+    .format-menu .icon{width:16px;height:16px}
+    .format-separator{width:1px;height:18px;margin:0 4px;background:var(--wiki-color-line)}
+    .format-menu.hidden{display:none}
+    .quote{margin:32px 0;padding:4px 0 4px var(--wiki-space-5);border-left:2px solid var(--wiki-color-accent);color:var(--wiki-color-muted)}
+    .quote p{margin:0}
+    .outline{min-width:0;min-height:0;overflow:auto;padding:24px 16px;border-left:1px solid var(--wiki-color-line);background:var(--wiki-color-paper)}
+    .outline-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--wiki-space-5);padding-left:4px}
+    .outline-title{font-size:12px;font-weight:600;letter-spacing:.04em;text-transform:uppercase}
+    .outline-close{width:28px;height:28px;margin-right:-4px}
+    .outline-close .icon{width:15px;height:15px}
+    .outline-section-label{margin:0 0 var(--wiki-space-2);padding:0 4px;color:var(--wiki-color-muted);font-size:11px;font-weight:500}
+    .outline-nav{display:grid;gap:2px}
+    .outline-link{position:relative;width:100%;min-height:32px;display:flex;align-items:center;padding:6px 8px 6px 12px;border:0;border-radius:var(--wiki-radius-md);background:transparent;color:var(--wiki-color-muted);font-size:12px;line-height:18px;text-align:left}
+    .outline-link:hover{background:var(--wiki-color-canvas);color:var(--wiki-color-ink)}
+    .outline-link.active{background:var(--wiki-color-accent-soft);color:var(--wiki-color-accent-dark);font-weight:500}
+    .outline-link.active:before{content:'';position:absolute;left:0;top:8px;bottom:8px;width:2px;background:var(--wiki-color-accent)}
+    .outline-link.nested{padding-left:24px}
+    .people{margin-top:32px;padding-top:20px;border-top:1px solid var(--wiki-color-line)}
+    .people-label{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;padding:0 4px;color:var(--wiki-color-muted);font-size:11px;font-weight:500}
+    .live-dot{width:6px;height:6px;border-radius:50%;background:var(--wiki-color-accent)}
+    .person{display:flex;align-items:center;gap:9px;padding:7px 4px}
+    .person .avatar{width:28px;height:28px;margin:0;border:0}
+    .person-copy{min-width:0;display:grid;gap:1px}
+    .person-copy strong{font-size:12px;font-weight:500}
+    .person-copy small{color:var(--wiki-color-muted);font-size:11px}
+    .outline-note{margin:20px 4px 0;color:var(--wiki-color-muted);font-size:11px;line-height:18px}
+    .focus-exit{display:none;position:fixed;z-index:10;right:24px;bottom:24px;height:40px;align-items:center;gap:8px;padding:0 16px;border:1px solid var(--wiki-color-line);border-radius:var(--wiki-radius-lg);background:var(--wiki-color-paper);box-shadow:var(--wiki-shadow-menu);font-size:13px;font-weight:500}
+    .focus-exit .icon{width:16px;height:16px}
+    body.focus-mode .app{grid-template-columns:0 minmax(0,1fr)}
+    body.focus-mode .sidebar{margin-left:-264px}
+    body.focus-mode .workspace-shell{grid-template-columns:minmax(0,1fr) 0}
+    body.focus-mode .outline{display:none}
+    body.focus-mode .focus-exit{display:flex}
+    body.focus-mode .page{width:min(calc(100% - 96px),760px)}
+    body.outline-hidden .workspace-shell{grid-template-columns:minmax(0,1fr) 0}
+    body.outline-hidden .outline{display:none}
+    .toast{position:fixed;z-index:20;left:50%;bottom:24px;padding:10px 16px;border:1px solid var(--wiki-color-line);border-radius:var(--wiki-radius-lg);background:var(--wiki-color-ink);color:var(--wiki-color-white);box-shadow:var(--wiki-shadow-menu);font-size:13px;opacity:0;pointer-events:none;transform:translate(-50%,8px);transition:opacity var(--wiki-motion-normal),transform var(--wiki-motion-normal)}
+    .toast.visible{opacity:1;transform:translate(-50%,0)}
+    @media(max-width:1180px){
+      .workspace-shell{grid-template-columns:minmax(0,1fr)}
+      .outline{display:none}
+      .outline-toggle{display:none}
+      .page{width:min(calc(100% - 80px),704px)}
+      .saved{display:none}
+    }
+    @media(max-width:760px){
+      .app{grid-template-columns:0 minmax(0,1fr)}
+      .sidebar{position:fixed;inset:0 auto 0 0;width:264px;transform:translateX(-100%);box-shadow:var(--wiki-shadow-dialog)}
+      body.mobile-sidebar .sidebar{transform:translateX(0)}
+      .topbar{padding-left:12px}
+      .breadcrumb span,.breadcrumb>.icon{display:none}
+      .share-button span,.presence{display:none}
+      .share-button{width:36px;padding:0;justify-content:center}
+      .page{width:calc(100% - 48px);padding-top:40px}
+      h1{font-size:32px}
+      .prose{margin-top:40px}
+      .format-menu{left:0;transform:none}
+      .format-menu:after{left:32px}
+    }
+    @media(prefers-reduced-motion:reduce){*,*:before,*:after{scroll-behavior:auto!important;transition:none!important}}
+  </style>
+</head>
+<body>
+  <svg class="sprite" aria-hidden="true">
+    <symbol id="i-wiki" viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="3"/><path d="M8 7h8M8 11h8M8 15h5"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+    <symbol id="i-chevron" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
+    <symbol id="i-right" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></symbol>
+    <symbol id="i-page" viewBox="0 0 24 24"><path d="M6 3h8l4 4v14H6z"/><path d="M14 3v5h5M9 12h6M9 16h6"/></symbol>
+    <symbol id="i-project" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="15" rx="2"/><path d="M3 10h18M8 5v5"/></symbol>
+    <symbol id="i-panel" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9 4v16"/></symbol>
+    <symbol id="i-side-right" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M15 4v16"/></symbol>
+    <symbol id="i-focus" viewBox="0 0 24 24"><path d="M8 3H3v5M16 3h5v5M8 21H3v-5M16 21h5v-5"/></symbol>
+    <symbol id="i-cloud" viewBox="0 0 24 24"><path d="M7 18h10a4 4 0 0 0 .7-7.94A6 6 0 0 0 6.17 8.8 4.6 4.6 0 0 0 7 18Z"/><path d="m9 13 2 2 4-4"/></symbol>
+    <symbol id="i-users" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><path d="M3 20v-2a6 6 0 0 1 12 0v2M16 5.3a3 3 0 0 1 0 5.4M17 14a5 5 0 0 1 4 4.9V20"/></symbol>
+    <symbol id="i-more" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1" fill="currentColor" stroke="none"/><circle cx="19" cy="12" r="1" fill="currentColor" stroke="none"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+    <symbol id="i-close" viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></symbol>
+    <symbol id="i-link" viewBox="0 0 24 24"><path d="m10 13 4-4M8 16l-1 1a4 4 0 0 1-6-6l4-4a4 4 0 0 1 6 0M16 8l1-1a4 4 0 0 1 6 6l-4 4a4 4 0 0 1-6 0" transform="translate(-1)"/></symbol>
+    <symbol id="i-comment" viewBox="0 0 24 24"><path d="M20 15a3 3 0 0 1-3 3H9l-5 3v-6a3 3 0 0 1-1-2V7a3 3 0 0 1 3-3h11a3 3 0 0 1 3 3z"/></symbol>
+  </svg>
+
+  <div class="app">
+    <aside class="sidebar" aria-label="Дерево страниц">
+      <div class="brand">
+        <div class="brand-name"><span class="brand-mark"><svg class="icon"><use href="#i-wiki"/></svg></span>wiki</div>
+        <span class="brand-note">рабочее место</span>
+      </div>
+      <div class="sidebar-actions">
+        <button class="search-button" data-toast="Поиск откроется по Cmd/Ctrl + K"><svg class="icon"><use href="#i-search"/></svg><span>Поиск</span><kbd>⌘ K</kbd></button>
+        <button class="new-page-button" data-toast="Макет: создание новой страницы"><svg class="icon"><use href="#i-plus"/></svg>Новая страница</button>
+      </div>
+      <div class="tree-caption"><span>Страницы</span><span>6</span></div>
+      <nav class="tree">
+        <div class="tree-row">
+          <button class="disclosure" aria-label="Свернуть проект Продукт" aria-expanded="true"><svg class="icon"><use href="#i-chevron"/></svg></button>
+          <button class="page-link"><svg class="icon"><use href="#i-project"/></svg><span>Продукт</span><span class="project-tag">проект</span></button>
+          <button class="tree-add" aria-label="Добавить страницу в Продукт"><svg class="icon"><use href="#i-plus"/></svg></button>
+        </div>
+        <div class="tree-children">
+          <div class="tree-row active" aria-current="page">
+            <span class="disclosure"></span>
+            <button class="page-link"><span class="page-emoji">🚀</span><span>Запуск продукта</span></button>
+            <button class="tree-add" aria-label="Добавить дочернюю страницу"><svg class="icon"><use href="#i-plus"/></svg></button>
+          </div>
+          <div class="tree-row"><span class="disclosure"></span><button class="page-link" data-toast="Макет: открыть «Требования»"><svg class="icon"><use href="#i-page"/></svg><span>Требования</span></button><button class="tree-add" aria-label="Добавить дочернюю страницу"><svg class="icon"><use href="#i-plus"/></svg></button></div>
+          <div class="tree-row"><span class="disclosure"></span><button class="page-link" data-toast="Макет: открыть «Исследование»"><svg class="icon"><use href="#i-page"/></svg><span>Исследование</span></button><button class="tree-add" aria-label="Добавить дочернюю страницу"><svg class="icon"><use href="#i-plus"/></svg></button></div>
+        </div>
+        <div class="tree-row">
+          <button class="disclosure" aria-label="Свернуть проект Команда" aria-expanded="true"><svg class="icon"><use href="#i-chevron"/></svg></button>
+          <button class="page-link"><svg class="icon"><use href="#i-project"/></svg><span>Команда</span><span class="project-tag">проект</span></button>
+          <button class="tree-add" aria-label="Добавить страницу в Команду"><svg class="icon"><use href="#i-plus"/></svg></button>
+        </div>
+        <div class="tree-children">
+          <div class="tree-row"><span class="disclosure"></span><button class="page-link" data-toast="Макет: открыть «Регламенты»"><svg class="icon"><use href="#i-page"/></svg><span>Регламенты</span></button><button class="tree-add" aria-label="Добавить дочернюю страницу"><svg class="icon"><use href="#i-plus"/></svg></button></div>
+        </div>
+      </nav>
+      <div class="sidebar-bottom">
+        <button class="workspace" data-toast="Макет: переключатель workspace"><span class="workspace-avatar">К</span><span class="workspace-copy"><strong>Команда</strong><small>you@example.com</small></span><svg class="icon"><use href="#i-chevron"/></svg></button>
+      </div>
+    </aside>
+
+    <main class="workspace-shell">
+      <header class="topbar">
+        <button class="icon-button sidebar-toggle" aria-label="Скрыть боковую панель" title="Боковая панель"><svg class="icon"><use href="#i-panel"/></svg></button>
+        <div class="breadcrumb"><span>Продукт</span><svg class="icon"><use href="#i-right"/></svg><strong>Запуск продукта</strong></div>
+        <div class="top-actions">
+          <span class="saved"><svg class="icon"><use href="#i-cloud"/></svg>Сохранено</span>
+          <div class="presence" aria-label="На странице два участника"><span class="avatar">АК</span><span class="avatar second">МС</span></div>
+          <button class="share-button" data-toast="Макет: диалог доступа"><svg class="icon"><use href="#i-users"/></svg><span>Поделиться</span></button>
+          <span class="top-separator"></span>
+          <button class="icon-button outline-toggle" aria-label="Показать панель страницы" title="Панель страницы"><svg class="icon"><use href="#i-side-right"/></svg></button>
+          <button class="icon-button focus-toggle" aria-label="Включить режим фокуса" title="Режим фокуса"><svg class="icon"><use href="#i-focus"/></svg></button>
+          <button class="icon-button" aria-label="Действия со страницей"><svg class="icon"><use href="#i-more"/></svg></button>
+        </div>
+      </header>
+
+      <div class="editor-scroll">
+        <article class="page">
+          <div class="page-icon" aria-hidden="true">🚀</div>
+          <h1>Запуск продукта</h1>
+          <div class="page-meta"><svg class="icon"><use href="#i-clock"/></svg><span>Обновлено только что</span><span class="meta-dot"></span><span>Проект «Продукт»</span></div>
+          <div class="prose">
+            <p>Первая версия объединяет работу команды в <span class="selection-wrap"><span class="selected-text" role="button" tabindex="0" aria-label="Выделенный текст. Показать форматирование">одном спокойном пространстве</span><span class="format-menu" role="toolbar" aria-label="Форматирование выделенного текста"><button class="active" aria-label="Жирный" aria-pressed="true"><strong>B</strong></button><button aria-label="Курсив"><em>I</em></button><button aria-label="Зачёркнутый"><s>S</s></button><span class="format-separator"></span><button aria-label="Вставить ссылку"><svg class="icon"><use href="#i-link"/></svg></button><button aria-label="Добавить комментарий"><svg class="icon"><use href="#i-comment"/></svg></button><button aria-label="Другие действия"><svg class="icon"><use href="#i-more"/></svg></button></span></span>. Здесь страница — основная единица работы, а проект помогает собрать страницы по смыслу.</p>
+
+            <h2 id="launch">Что входит в запуск</h2>
+            <ul>
+              <li>Дерево страниц с вложенностью и перетаскиванием.</li>
+              <li>Полный Markdown и привычное форматирование.</li>
+              <li><strong>Живые правки</strong> второго участника без перезагрузки.</li>
+            </ul>
+
+            <h2 id="scenario">Первый сценарий</h2>
+            <p>Участник открывает проект, создаёт страницу и сразу начинает писать. Ничего лишнего между мыслью и текстом: нужные инструменты появляются рядом с выделением.</p>
+            <div class="quote"><p>Интерфейс поддерживает работу, но не спорит за внимание с содержимым.</p></div>
+            <p>Когда нужен максимум концентрации, боковые панели убираются одним действием. Структура страницы и присутствие команды остаются доступны в обычном режиме.</p>
+          </div>
+        </article>
+      </div>
+
+      <aside class="outline" aria-label="Панель страницы">
+        <div class="outline-head"><span class="outline-title">На странице</span><button class="icon-button outline-close" aria-label="Скрыть панель страницы"><svg class="icon"><use href="#i-close"/></svg></button></div>
+        <p class="outline-section-label">Главы</p>
+        <nav class="outline-nav" aria-label="Оглавление">
+          <button class="outline-link active" data-target="launch">Что входит в запуск</button>
+          <button class="outline-link" data-target="scenario">Первый сценарий</button>
+        </nav>
+        <section class="people" aria-label="Участники на странице">
+          <div class="people-label"><span>Сейчас на странице</span><span class="live-dot" aria-label="Онлайн"></span></div>
+          <div class="person"><span class="avatar">АК</span><span class="person-copy"><strong>Анна Крылова</strong><small>Читает первый сценарий</small></span></div>
+          <div class="person"><span class="avatar second">МС</span><span class="person-copy"><strong>Михаил Соколов</strong><small>Редактирует запуск</small></span></div>
+          <p class="outline-note">Нажмите на участника, чтобы перейти к его месту на странице.</p>
+        </section>
+      </aside>
+    </main>
+  </div>
+
+  <button class="focus-exit"><svg class="icon"><use href="#i-focus"/></svg>Выйти из фокуса</button>
+  <div class="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    const body = document.body;
+    const toast = document.querySelector('.toast');
+    let toastTimer;
+    function showToast(message) {
+      toast.textContent = message;
+      toast.classList.add('visible');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => toast.classList.remove('visible'), 2200);
+    }
+    document.querySelectorAll('[data-toast]').forEach(button => button.addEventListener('click', () => showToast(button.dataset.toast)));
+    document.querySelectorAll('.disclosure[aria-expanded]').forEach(button => button.addEventListener('click', () => {
+      const expanded = button.getAttribute('aria-expanded') === 'true';
+      button.setAttribute('aria-expanded', String(!expanded));
+      button.setAttribute('aria-label', `${expanded ? 'Развернуть' : 'Свернуть'} проект ${button.closest('.tree-row').querySelector('.page-link span').textContent}`);
+      button.closest('.tree-row').nextElementSibling.classList.toggle('collapsed', expanded);
+    }));
+    function toggleSidebar() {
+      if (window.innerWidth <= 760) body.classList.toggle('mobile-sidebar');
+      else body.classList.toggle('focus-mode');
+    }
+    document.querySelector('.sidebar-toggle').addEventListener('click', toggleSidebar);
+    document.querySelector('.focus-toggle').addEventListener('click', () => body.classList.add('focus-mode'));
+    document.querySelector('.focus-exit').addEventListener('click', () => body.classList.remove('focus-mode'));
+    document.querySelector('.outline-close').addEventListener('click', () => body.classList.add('outline-hidden'));
+    document.querySelector('.outline-toggle').addEventListener('click', () => {
+      body.classList.toggle('outline-hidden');
+      showToast('На широком экране панель возвращается кнопкой рядом с режимом фокуса');
+    });
+    document.querySelectorAll('.outline-link').forEach(button => button.addEventListener('click', () => {
+      document.querySelectorAll('.outline-link').forEach(link => link.classList.remove('active'));
+      button.classList.add('active');
+      document.getElementById(button.dataset.target).scrollIntoView({behavior:'smooth',block:'start'});
+    }));
+    const selectedText = document.querySelector('.selected-text');
+    const formatMenu = document.querySelector('.format-menu');
+    function toggleFormatting() { formatMenu.classList.toggle('hidden'); }
+    selectedText.addEventListener('click', toggleFormatting);
+    selectedText.addEventListener('keydown', event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); toggleFormatting(); } });
+    document.querySelectorAll('.format-menu button').forEach(button => button.addEventListener('click', () => showToast(`Макет: ${button.getAttribute('aria-label')}`)));
+    document.addEventListener('keydown', event => {
+      if (event.key === 'Escape') { body.classList.remove('focus-mode','mobile-sidebar'); formatMenu.classList.add('hidden'); }
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') { event.preventDefault(); showToast('Макет: здесь откроется поиск'); }
+    });
+  </script>
+</body>
+</html>

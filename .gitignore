@@ -1,2 +1,14 @@
 .DS_Store
 node_modules/
+
+.env
+.env.*
+!.env.example
+.tmp/
+qa-bug-hunt/
+__pycache__/
+*.py[cod]
+
+design/figma/product-state.json
+integrations/figma-mcp/
+plugin-sources/personal/
